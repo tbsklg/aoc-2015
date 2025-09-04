@@ -6,24 +6,13 @@ fn main() {
 }
 
 fn part_1(input: &str) -> i32 {
-    input
-        .chars()
-        .map(|x| match x {
-            '(' => 1,
-            ')' => -1,
-            _ => 0,
-        })
-        .sum()
+    input.chars().map(map_to_up_or_down).sum()
 }
 
 fn part_2(input: &str) -> usize {
     input
         .chars()
-        .map(|x| match x {
-            '(' => 1,
-            ')' => -1,
-            _ => 0,
-        })
+        .map(map_to_up_or_down)
         .scan(0, |acc, x| {
             *acc += x;
             Some(*acc)
@@ -31,4 +20,12 @@ fn part_2(input: &str) -> usize {
         .position(|x| x == -1)
         .unwrap()
         + 1
+}
+
+fn map_to_up_or_down(c: char) -> i32 {
+    match c {
+        '(' => 1,
+        ')' => -1,
+        _ => 0,
+    }
 }
