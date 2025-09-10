@@ -1,7 +1,8 @@
 fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
 
-    println!("part 1: {}", part_1(&input));
+    let now = std::time::Instant::now();
+    println!("part 1: {} ({:?})", part_1(&input), now.elapsed());
 }
 
 fn part_1(input: &str) -> usize {
@@ -9,18 +10,20 @@ fn part_1(input: &str) -> usize {
 }
 
 fn is_nice(line: &str) -> Option<&str> {
-    let vowel_count = line
-        .chars()
-        .filter(|x| ['a', 'e', 'i', 'o', 'u'].contains(x))
-        .count();
-    let has_double_row = line
-        .chars()
-        .collect::<Vec<_>>()
-        .windows(2)
-        .any(|pair| pair[0] == pair[1]);
-    let forbidden = ["ab", "cd", "pq", "xy"].iter().any(|x| line.contains(x));
+    let vowel_count = |line: &str| {
+        line.chars()
+            .filter(|x| ['a', 'e', 'i', 'o', 'u'].contains(x))
+            .count()
+    };
+    let has_double_row = |line: &str| {
+        line.chars()
+            .collect::<Vec<_>>()
+            .windows(2)
+            .any(|pair| pair[0] == pair[1])
+    };
+    let forbidden = |line: &str| ["ab", "cd", "pq", "xy"].iter().any(|x| line.contains(x));
 
-    if vowel_count > 2 && has_double_row && !forbidden {
+    if vowel_count(line) > 2 && has_double_row(line) && !forbidden(line) {
         Some(line)
     } else {
         None
