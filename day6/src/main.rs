@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
 
@@ -20,13 +22,33 @@ struct Instruction {
 }
 
 fn part_1(input: &str) -> usize {
-    parse_lines(input);
-    0
-}
+    // TODO: Improve performance
+    let i = input
+        .lines()
+        .map(parse_line)
+        .fold(HashSet::new(), |mut acc, instr| {
+            println!("{:?}", instr);
+            for x in instr.range.0.0..=instr.range.1.0 {
+                for y in instr.range.0.1..=instr.range.1.1 {
+                    match instr.action {
+                        Action::Turn(true) => {
+                            acc.insert((x, y));
+                        }
+                        Action::Turn(false) => {
+                            acc.remove(&(x, y));
+                        }
+                        Action::Toggle => {
+                            if !acc.insert((x, y)) {
+                                acc.remove(&(x, y));
+                            }
+                        }
+                    }
+                }
+            }
+            acc
+        });
 
-fn parse_lines(input: &str) {
-    let i = input.lines().map(parse_line).collect::<Vec<_>>();
-    println!("{:?}", i);
+    i.len()
 }
 
 fn parse_line(line: &str) -> Instruction {
@@ -60,7 +82,10 @@ fn parse_line(line: &str) -> Instruction {
         iter.next().unwrap().parse::<usize>().unwrap(),
     );
 
-    Instruction { action, range: (from, to) }
+    Instruction {
+        action,
+        range: (from, to),
+    }
 }
 
 #[cfg(test)]
