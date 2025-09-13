@@ -22,33 +22,22 @@ struct Instruction {
 }
 
 fn part_1(input: &str) -> usize {
-    // TODO: Improve performance
-    let i = input
-        .lines()
-        .map(parse_line)
-        .fold(HashSet::new(), |mut acc, instr| {
-            println!("{:?}", instr);
-            for x in instr.range.0.0..=instr.range.1.0 {
-                for y in instr.range.0.1..=instr.range.1.1 {
-                    match instr.action {
-                        Action::Turn(true) => {
-                            acc.insert((x, y));
-                        }
-                        Action::Turn(false) => {
-                            acc.remove(&(x, y));
-                        }
-                        Action::Toggle => {
-                            if !acc.insert((x, y)) {
-                                acc.remove(&(x, y));
-                            }
-                        }
-                    }
+    let grid = vec![vec![false; 1000]; 1000];
+    let instructions: Vec<Instruction> = input.lines().map(parse_line).collect();
+
+    let final_grid = instructions.iter().fold(grid, |mut grid, instruction| {
+        (instruction.range.0.0..=instruction.range.1.0).for_each(|x| {
+            for y in instruction.range.0.1..=instruction.range.1.1 {
+                match instruction.action {
+                    Action::Turn(on) => grid[x][y] = on,
+                    Action::Toggle => grid[x][y] = !grid[x][y],
                 }
             }
-            acc
         });
+        grid
+    });
 
-    i.len()
+    final_grid.iter().flatten().filter(|&&light| light).count()
 }
 
 fn parse_line(line: &str) -> Instruction {
