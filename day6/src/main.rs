@@ -1,10 +1,13 @@
-use std::collections::HashSet;
+#![warn(clippy::pedantic)]
 
 fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
 
     let now = std::time::Instant::now();
     println!("part 1: {} ({:?})", part_1(&input), now.elapsed());
+
+    let now = std::time::Instant::now();
+    println!("part 2: {} ({:?})", part_2(&input), now.elapsed());
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -38,6 +41,26 @@ fn part_1(input: &str) -> usize {
     });
 
     final_grid.iter().flatten().filter(|&&light| light).count()
+}
+
+fn part_2(input: &str) -> usize {
+    let grid = vec![vec![0usize; 1000]; 1000];
+    let instructions: Vec<Instruction> = input.lines().map(parse_line).collect();
+
+    let final_grid = instructions.iter().fold(grid, |mut grid, instruction| {
+        (instruction.range.0.0..=instruction.range.1.0).for_each(|x| {
+            for y in instruction.range.0.1..=instruction.range.1.1 {
+                match instruction.action {
+                    Action::Turn(true) => grid[x][y] += 1,
+                    Action::Turn(false) => grid[x][y] = grid[x][y].saturating_sub(1),
+                    Action::Toggle => grid[x][y] += 2,
+                }
+            }
+        });
+        grid
+    });
+
+    final_grid.iter().flatten().sum()
 }
 
 fn parse_line(line: &str) -> Instruction {
