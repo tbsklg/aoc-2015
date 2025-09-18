@@ -1,71 +1,58 @@
-use std::process::exit;
+use std::{collections::HashMap, process::exit};
 
 fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
 
     let now = std::time::Instant::now();
-    println!("part 1: {} ({:?})", part_1(&input), now.elapsed());
+    println!("part 1: {} ({:?})", part_1(&input).unwrap(), now.elapsed());
 }
 
-fn part_1(input: &str) -> u16 {
-    let xs = input.lines().map(parse_gate).collect::<Vec<_>>();
-    println!("{:?}", xs);
-    0
-}
-#[derive(Debug, Clone)]
-enum Operand {
-    Number(u16),
-    Wire(String),
+fn part_1(input: &str) -> Option<u16> {
+    let gates = input
+        .lines()
+        .map(parse_gate)
+        .collect::<HashMap<String, Gate>>();
+
+    solve(gates)
 }
 
-impl Operand {
-    fn from_str(s: &str) -> Self {
-        if let Ok(num) = s.parse::<u16>() {
-            Operand::Number(num)
-        } else {
-            Operand::Wire(s.to_string())
-        }
-    }
-}
+fn solve(mut gates: HashMap<String, Gate>) -> Option<u16> {}
 
 #[derive(Debug, Clone)]
 enum Gate {
-    Value(Operand),
-    Not(Operand),
-    And(Operand, Operand),
-    Or(Operand, Operand),
-    Lshift(Operand, u8),
-    Rshift(Operand, u8),
+    Value(u16),
+    Wire(String),
+    Not(String),
+    And(String, String),
+    Or(String, String),
+    Lshift(String, u8),
+    Rshift(String, u8),
 }
 
-fn parse_gate(line: &str) -> (Gate, String) {
+fn parse_gate(line: &str) -> (String, Gate) {
     let mut iter = line.split(" -> ");
     let mut left = iter.next().unwrap().split(" ");
     let gate = match left.next().unwrap() {
-        "NOT" => {
-            println!("NOT");
-            let operand = left.next().unwrap();
-            Gate::Not(Operand::from_str(operand))
-        }
-        other => {
-            println!("other: {other}");
+        "NOT" => Gate::Not(left.next().unwrap().to_string()),
+        wire => {
+            let wire = wire.to_string();
             if let Some(op) = left.next() {
                 match op {
                     "RSHIFT" => {
                         let shift_amount = left.next().unwrap().parse().unwrap();
-                        Gate::Rshift(Operand::from_str(other), shift_amount)
+                        Gate::Rshift(wire, shift_amount)
                     }
                     "LSHIFT" => {
                         let shift_amount = left.next().unwrap().parse().unwrap();
-                        Gate::Lshift(Operand::from_str(other), shift_amount)
+                        Gate::Lshift(wire, shift_amount)
                     }
                     "AND" => {
-                        let right_operand = left.next().unwrap();
-                        Gate::And(Operand::from_str(other), Operand::from_str(right_operand))
+                        let target_wire = left.next().unwrap().to_string();
+                        Gate::And(wire, target_wire)
                     }
                     "OR" => {
-                        let right_operand = left.next().unwrap();
-                        Gate::Or(Operand::from_str(other), Operand::from_str(right_operand))
+                        let target_wire = left.next().unwrap().to_string();
+                        Gate::Or(wire, target_wire)
                     }
                     xs => {
                         eprintln!("unknown operation: {xs}");
@@ -73,12 +60,14 @@ fn parse_gate(line: &str) -> (Gate, String) {
                     }
                 }
             } else {
-                Gate::Value(Operand::from_str(other))
+                wire.parse::<u16>()
+                    .map(Gate::Value)
+                    .unwrap_or(Gate::Wire(wire))
             }
         }
     };
     let right = iter.next().unwrap().to_string();
-    (gate, right)
+    (right, gate)
 }
 
 fn shift_right(value: u16, amount: u8) -> u16 {
@@ -95,6 +84,10 @@ fn and(x: u16, y: u16) -> u16 {
 
 fn or(x: u16, y: u16) -> u16 {
     x | y
+}
+
+fn not(x: u16) -> u16 {
+    !x
 }
 
 #[cfg(test)]
