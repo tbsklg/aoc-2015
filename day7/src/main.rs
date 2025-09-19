@@ -13,10 +13,33 @@ fn part_1(input: &str) -> Option<u16> {
         .map(parse_gate)
         .collect::<HashMap<String, Gate>>();
 
-    solve(gates)
+    let mut mutable_gates = gates.clone();
+    let result = solve(&mut mutable_gates, "a");
+    Some(result)
 }
 
-fn solve(mut gates: HashMap<String, Gate>) -> Option<u16> {}
+fn solve(gates: &mut HashMap<String, Gate>, wire: &str) -> u16 {
+    if let Ok(num) = wire.parse::<u16>() {
+        return num;
+    }
+
+    if let Some(gate) = gates.get(wire).cloned() {
+        let value = match gate {
+            Gate::Value(x) => x,
+            Gate::Wire(w) => solve(gates, &w),
+            Gate::Not(w) => !solve(gates, &w),
+            Gate::And(w1, w2) => solve(gates, &w1) & solve(gates, &w2),
+            Gate::Or(w1, w2) => solve(gates, &w1) | solve(gates, &w2),
+            Gate::Lshift(w, amount) => solve(gates, &w) << amount,
+            Gate::Rshift(w, amount) => solve(gates, &w) >> amount,
+        };
+
+        gates.insert(wire.to_string(), Gate::Value(value));
+        value
+    } else {
+        panic!("Wire '{}' not found", wire);
+    }
+}
 
 #[derive(Debug, Clone)]
 enum Gate {
@@ -70,47 +93,3 @@ fn parse_gate(line: &str) -> (String, Gate) {
     (right, gate)
 }
 
-fn shift_right(value: u16, amount: u8) -> u16 {
-    value >> amount
-}
-
-fn shift_left(value: u16, amount: u8) -> u16 {
-    value << amount
-}
-
-fn and(x: u16, y: u16) -> u16 {
-    x & y
-}
-
-fn or(x: u16, y: u16) -> u16 {
-    x | y
-}
-
-fn not(x: u16) -> u16 {
-    !x
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::shift_right;
-
-    #[test]
-    fn should_shift_right() {
-        assert_eq!(shift_right(456, 2), 114);
-    }
-
-    #[test]
-    fn should_shift_left() {
-        assert_eq!(super::shift_left(456, 2), 1824);
-    }
-
-    #[test]
-    fn should_and() {
-        assert_eq!(super::and(456, 123), 72);
-    }
-
-    #[test]
-    fn should_or() {
-        assert_eq!(super::or(456, 123), 507);
-    }
-}
