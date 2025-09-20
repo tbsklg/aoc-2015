@@ -1,13 +1,28 @@
-use std::{collections::HashMap, process::exit};
+#![warn(clippy::pedantic)]
+
+use std::collections::HashMap;
 
 fn main() {
     let input = std::fs::read_to_string("input.txt").unwrap();
 
     let now = std::time::Instant::now();
-    println!("part 1: {} ({:?})", part_1(&input).unwrap(), now.elapsed());
+    println!("part 1: {} ({:?})", part_1(&input), now.elapsed());
+
+    let now = std::time::Instant::now();
+    println!("part 2: {} ({:?})", part_2(&input), now.elapsed());
 }
 
-fn part_1(input: &str) -> Option<u16> {
+fn part_1(input: &str) -> u16 {
+    let gates = input
+        .lines()
+        .map(parse_gate)
+        .collect::<HashMap<String, Gate>>();
+
+    let mut mutable_gates = gates.clone();
+    solve(&mut mutable_gates, "a")
+}
+
+fn part_2(input: &str) -> u16 {
     let gates = input
         .lines()
         .map(parse_gate)
@@ -15,7 +30,10 @@ fn part_1(input: &str) -> Option<u16> {
 
     let mut mutable_gates = gates.clone();
     let result = solve(&mut mutable_gates, "a");
-    Some(result)
+
+    let mut mutable_gates = gates.clone();
+    mutable_gates.insert("b".to_string(), Gate::Value(result));
+    solve(&mut mutable_gates, "a")
 }
 
 fn solve(gates: &mut HashMap<String, Gate>, wire: &str) -> u16 {
@@ -37,7 +55,7 @@ fn solve(gates: &mut HashMap<String, Gate>, wire: &str) -> u16 {
         gates.insert(wire.to_string(), Gate::Value(value));
         value
     } else {
-        panic!("Wire '{}' not found", wire);
+        panic!("Wire '{wire}' not found");
     }
 }
 
@@ -54,7 +72,7 @@ enum Gate {
 
 fn parse_gate(line: &str) -> (String, Gate) {
     let mut iter = line.split(" -> ");
-    let mut left = iter.next().unwrap().split(" ");
+    let mut left = iter.next().unwrap().split(' ');
     let gate = match left.next().unwrap() {
         "NOT" => Gate::Not(left.next().unwrap().to_string()),
         wire => {
@@ -92,4 +110,3 @@ fn parse_gate(line: &str) -> (String, Gate) {
     let right = iter.next().unwrap().to_string();
     (right, gate)
 }
-
