@@ -3,6 +3,9 @@ fn main() {
 
     let now = std::time::Instant::now();
     println!("part 1: {} ({:?})", part_1(&input), now.elapsed());
+
+    let now = std::time::Instant::now();
+    println!("part 2: {} ({:?})", part_2(&input), now.elapsed());
 }
 
 fn part_1(input: &str) -> usize {
@@ -58,6 +61,43 @@ fn count_memory_chars(content: &str) -> usize {
     }
 
     count
+}
+
+fn part_2(input: &str) -> i32 {
+    let mut total_original_code_chars = 0;
+    let mut total_encoded_chars = 0;
+
+    for line in input.lines() {
+        let trimmed = line.trim();
+        if trimmed.is_empty() {
+            continue;
+        }
+
+        let original_code_chars = trimmed.len() as i32;
+        let encoded_string = encode_string_literal(trimmed);
+        let encoded_chars = encoded_string.len() as i32;
+
+        total_original_code_chars += original_code_chars;
+        total_encoded_chars += encoded_chars;
+    }
+
+    total_encoded_chars - total_original_code_chars
+}
+
+fn encode_string_literal(s: &str) -> String {
+    let mut encoded = String::new();
+    encoded.push('"');
+
+    for ch in s.chars() {
+        match ch {
+            '"' => encoded.push_str("\\\""),
+            '\\' => encoded.push_str("\\\\"),
+            _ => encoded.push(ch),
+        }
+    }
+
+    encoded.push('"');
+    encoded
 }
 
 #[cfg(test)]
