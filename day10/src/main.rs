@@ -1,3 +1,5 @@
+#![warn(clippy::pedantic)]
+
 use itertools::Itertools;
 
 fn main() {
@@ -9,9 +11,9 @@ fn main() {
     println!("part 2: {} ({:?})", part_1(&input, 50), now.elapsed());
 }
 
-fn part_1(input: &Vec<u8>, times: usize) -> usize {
+fn part_1(input: &[u8], times: usize) -> usize {
     let mut count = 0;
-    let mut start = input.clone();
+    let mut start = input.to_owned();
 
     while count < times {
         count += 1;
@@ -21,6 +23,7 @@ fn part_1(input: &Vec<u8>, times: usize) -> usize {
     start.len()
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn look_and_say(input: Vec<u8>) -> Vec<u8> {
     input
         .into_iter()
